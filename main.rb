@@ -12,7 +12,7 @@ class Moldindconbank
 
   def main
     log_in
-    result = get_cards_info
+    result = {accounts: get_cards_info.merge!(transactions: get_transactions_info)}
     log_out
     
     result
@@ -25,15 +25,15 @@ private
     change_language
     wait_element(browser.text_field(class: "username") && browser.text_field(id: "password"))
 
-    # puts "Please, enter your username: \n"
-    # username = gets.chomp
+    puts "Please, enten your username: \n"
+    username = gets.chomp
     browser.text_field(class: "username").click
-    browser.text_field(class: "username").set("Babo4kaenot")
+    browser.text_field(class: "username").set(username)
 
-    # puts "Please, enter your password: \n"
-    # password = gets.chomp
+    puts "Please, enten your password: \n"
+    password = gets.chomp
     browser.text_field(id: "password").click
-    browser.text_field(id: "password").set("Stanislavept155")
+    browser.text_field(id: "password").set(password)
 
     wait_element(browser.button(class: "wb-button"))
     browser.button(class: "wb-button").click
@@ -45,13 +45,11 @@ private
 
   def get_cards_info
     wait_element(browser.div(class: "contract-cards"))
-    cards = []
-    transactions = []
+    cards = {}
 
-    browser.divs(class: "contract-cards").each do |link|
+    browser.divs(class: "contract-cards").each do |el|
       sleep 2
-      binding.pry
-      link.click
+      el.click
 
       wait_element(browser.link(class: "ui-tabs-anchor", text: "Информация"))
       browser.link(class: "ui-tabs-anchor", text: "Информация").click
@@ -62,45 +60,22 @@ private
       wait_element(browser.link(class: "menu-link", text: "Карты и счета"))
       browser.link(class: "menu-link", text: "Карты и счета").click
 
-      cards << {
+      cards.merge!({
         name:     card.css('tr td.value')[0].text.to_s,
         balance:  card.css('tr td.value')[8].text.to_f,
         currency: card.css('tr td.value')[8].text.split(" ").last,
         nature:   card.css('tr td.value')[3].text.split("- ").last
-      }
-
-      transactions << path_to_transactions
-    end
-  end
-
-  def path_to_transactions
-    # wait_element(browser.link(class: "menu-link", text: "Карты и счета"))
-    # browser.link(class: "menu-link", text: "Карты и счета").click
-
-    # wait_element(browser.div(class: "contract-cards"))
-    # browser.div(class: "contract-cards").click
-
-    wait_element(browser.link(class: "ui-tabs-anchor", text: "История транзакций"))
-    browser.link(class: "ui-tabs-anchor", text: "История транзакций").click
-    sleep 3
-
-    if browser.h1(text: /Нет операций для отображения/i).present?
-      browser.link(class: "menu-link", text: "Карты и счета").click
-      wait_element(browser.div(class: "contract-cards"))
-      sleep 3
-      return 
+      })
     end
 
-    wait_element(browser.div(class: ["filter", "filter_period"]))
-    browser.div(class: ["filter", "filter_period"]).input.click
-
-    wait_element(browser.link(class: "ui-state-default", text: "1"))
-    browser.link(class: "ui-state-default", text: "1").click
-
-    get_transactions_info
+    cards
   end
 
   def get_transactions_info
+    path_to_transactions
+    sleep 2
+
+    wait_element(browser.div(class: "operations"))
     transactions = []
 
     browser.links(class: "operation-details").each do |en|
@@ -120,6 +95,25 @@ private
     end
 
     transactions
+  end
+
+  def path_to_transactions
+    wait_element(browser.link(class: "menu-link", text: "Карты и счета"))
+    browser.link(class: "menu-link", text: "Карты и счета").click
+
+    wait_element(browser.div(class: "contract-cards"))
+    sleep 2
+
+    browser.divs(class: "contract-cards")[1].click
+    wait_element(browser.link(class: "ui-tabs-anchor", text: "История транзакций"))
+
+    browser.link(class: "ui-tabs-anchor", text: "История транзакций").click
+    wait_element(browser.div(class: ["filter", "filter_period"]))
+
+    browser.div(class: ["filter", "filter_period"]).input.click
+    wait_element(browser.link(class: "ui-state-default", text: "1"))
+
+    browser.link(class: "ui-state-default", text: "1").click
   end
 
   def wait_element(element)
