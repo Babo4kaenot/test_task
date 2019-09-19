@@ -12,7 +12,7 @@ class Moldindconbank
 
   def main
     log_in
-    result = {accounts: get_cards_info.merge!(transactions: get_transactions_info)}
+    result = {accounts: get_cards_info}
     log_out
     
     result
@@ -45,11 +45,11 @@ private
 
   def get_cards_info
     wait_element(browser.div(class: "contract-cards"))
-    cards = {}
+    cards = []
 
-    browser.divs(class: "contract-cards").each do |el|
+    browser.divs(class: "contract-cards").each do |element|
       sleep 2
-      el.click
+      element.click
 
       wait_element(browser.link(class: "ui-tabs-anchor", text: "Информация"))
       browser.link(class: "ui-tabs-anchor", text: "Информация").click
@@ -57,17 +57,18 @@ private
       wait_element(browser.div(id: "contract-information").table.tbody)
       card = Nokogiri::HTML(browser.div(id: "contract-information").table.tbody.html)
 
-      wait_element(browser.link(class: "menu-link", text: "Карты и счета"))
-      browser.link(class: "menu-link", text: "Карты и счета").click
-
-      cards.merge!({
+      cards << {
         name:     card.css('tr td.value')[0].text.to_s,
         balance:  card.css('tr td.value')[8].text.to_f,
         currency: card.css('tr td.value')[8].text.split(" ").last,
         nature:   card.css('tr td.value')[3].text.split("- ").last
-      })
-    end
+      }
 
+      cards.first.merge!(transactions: get_transactions_info)
+
+      wait_element(browser.link(class: "menu-link", text: "Карты и счета"))
+      browser.link(class: "menu-link", text: "Карты и счета").click
+    end
     cards
   end
 
