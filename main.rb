@@ -23,7 +23,7 @@ private
   def log_in
     browser.goto("https://wb.micb.md")
     change_language
-    wait_element(browser.text_field(class: "username") && browser.text_field(id: "password"))
+    wait_element(browser.text_field(class: "username")) #&& browser.text_field(id: "password"))
 
     puts "Please, enten your username: \n"
     username = gets.chomp
@@ -57,14 +57,14 @@ private
       wait_element(browser.div(id: "contract-information").table.tbody)
       card = Nokogiri::HTML(browser.div(id: "contract-information").table.tbody.html)
 
-      cards << {
+     cards << {
+        
         name:     card.css('tr td.value')[0].text.to_s,
         balance:  card.css('tr td.value')[8].text.to_f,
-        currency: card.css('tr td.value')[8].text.split(" ").last,
+        currency: card.css('tr td.value')[8].text.split(" ").last,
         nature:   card.css('tr td.value')[3].text.split("- ").last
-      }
+      }.merge!(transactions: get_transactions_info)
 
-      cards.first.merge!(transactions: get_transactions_info)
 
       wait_element(browser.link(class: "menu-link", text: "Карты и счета"))
       browser.link(class: "menu-link", text: "Карты и счета").click
