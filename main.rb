@@ -23,7 +23,7 @@ private
   def log_in
     browser.goto("https://wb.micb.md")
     change_language
-    wait_element(browser.text_field(class: "username")) #&& browser.text_field(id: "password"))
+    wait_element(browser.text_field(class: "username"))
 
     puts "Please, enten your username: \n"
     username = gets.chomp
